@@ -4,8 +4,6 @@
 Minimal fixed-cell typing latency tester for macOS.
 It sends a synthetic key event, watches a small screen region, and records the time until visible pixels change.
 
-Measured path: synthetic key event -> visible screen-region change
-
 **This is a practical editor responsiveness test, not a lab-grade hardware/input-lag measurement.**
 
 ## Install

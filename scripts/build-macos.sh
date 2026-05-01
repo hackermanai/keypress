@@ -29,15 +29,15 @@ chmod +x dist/build/tl
 
 mkdir -p dist/pkg/tl-macos-arm64
 cp dist/build/tl-arm64 dist/pkg/tl-macos-arm64/tl
-cp README.md LICENSE dist/pkg/tl-macos-arm64/
+# cp README.md LICENSE dist/pkg/tl-macos-arm64/
 
 mkdir -p dist/pkg/tl-macos-x86_64
 cp dist/build/tl-x86_64 dist/pkg/tl-macos-x86_64/tl
-cp README.md LICENSE dist/pkg/tl-macos-x86_64/
+# cp README.md LICENSE dist/pkg/tl-macos-x86_64/
 
 mkdir -p dist/pkg/tl-macos-universal
 cp dist/build/tl dist/pkg/tl-macos-universal/tl
-cp README.md LICENSE dist/pkg/tl-macos-universal/
+# cp README.md LICENSE dist/pkg/tl-macos-universal/
 
 cd dist/pkg
 

@@ -1,5 +1,5 @@
 
-# Typing Latency
+# Keypress
 
 Minimal fixed-cell typing latency tester for macOS.
 It sends a synthetic key event, watches a small screen region, and records the time until visible pixels change.
@@ -9,13 +9,17 @@ It sends a synthetic key event, watches a small screen region, and records the t
 ## Install
 
 ```
-curl -fsSL https://raw.githubusercontent.com/hackermanai/typinglatency/main/install.sh | sh
+curl -fsSL https://keypress.sh/install | sh
+```
+
+```
+curl -fsSL https://raw.githubusercontent.com/hackermanai/keypress/main/install.sh | sh
 ```
 
 Installs to:
 
 ```
-~/.local/bin/tl
+~/.local/bin/keypress
 ```
 
 Add to PATH if needed:
@@ -38,22 +42,21 @@ Restart Terminal after granting permissions if needed.
 Pick the target region interactively:
 
 ```
-tl --pick --region-w 120 --region-h 80 --count 100 --out result.csv
+keypress --pick
 ```
 
-Or use fixed coordinates:
+Or use options:
 
 ```
-tl --x 930 --y 420 --region-w 120 --region-h 80 --count 100 --out result.csv
+keypress --x 930 --y 420 --region-w 120 --region-h 80 --count 100 --out result.csv
 ```
 
 Pick a point near the caret/glyph position where the typed character appears.
 
 ```
-michael@Michaels-Mac-mini ~ % tl --pick --count 10
+michael@Michaels-Mac-mini ~ % keypress --pick --count 10
 Click the target caret/glyph position in the editor...
 Picked x=1955 y=1111
-Typing Latency fixed-cell test
 Picked/using x=1955 y=1111
 Watch region: (1935,1081 40x60)
 Threshold: 10, min changed pixels: 1
@@ -100,8 +103,8 @@ Each iteration records:
 
 | Command / option | Description |
 |---|---|
-| `tl --pick [options]` | Run with interactive target selection |
-| `tl --x N --y N [options]` | Run with fixed target coordinates |
+| `keypress --pick [options]` | Run with interactive target selection |
+| `keypress --x N --y N [options]` | Run with fixed target coordinates |
 | `--help`, `-h` | Show help |
 | `--version` | Show version |
 | `--pick` | Choose target by clicking |
@@ -116,18 +119,12 @@ Each iteration records:
 | `--min-changed-pixels N` | Default: `1` |
 | `--out file.csv` | Default: `latency.csv` |
 
-For example:
-
-```
-tl --pick --region-w 120 --region-h 80 --count 100 --out result.csv
-```
-
 ## Build
 
 Compile directly:
 
 ```
-xcrun clang -O2 tl.c -framework ApplicationServices -framework CoreFoundation -o tl
+xcrun clang -O2 keypress.c -framework ApplicationServices -framework CoreFoundation -o keypress
 ```
 
 ## Notes

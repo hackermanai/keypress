@@ -1,16 +1,108 @@
 
 # Typing Latency
 
-Minimal fixed-cell typing latency measurement tool for macOS.
+Minimal fixed-cell typing latency tester for macOS.
+It sends a synthetic key event, watches a small screen region, and records the time until visible pixels change.
 
-Compile:
-    xcrun clang -O2 tl.c -framework ApplicationServices -o tl
+Measured path: synthetic key event -> visible screen-region change
 
-Run from Terminal:
-    ./tl --pick --region-w 120 --region-h 80 --count 100 --out result.csv
+**This is a practical editor responsiveness test, not a lab-grade hardware/input-lag measurement.**
 
-macOS permissions required:
+## Install
+
+```
+curl -fsSL https://raw.githubusercontent.com/hackermanai/typinglatency/main/install.sh | sh
+```
+
+Installs to:
+
+```
+~/.local/bin/tl
+```
+
+Add to PATH if needed:
+
+```
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+## Permissions
+
+Required on macOS:
 
 - System Settings -> Privacy & Security -> **Accessibility**
 - System Settings -> Privacy & Security -> **Screen Recording**
+
+Restart Terminal after granting permissions if needed.
+
+## Run
+
+Pick the target region interactively:
+
+```
+tl --pick --region-w 120 --region-h 80 --count 100 --out result.csv
+```
+
+Or use fixed coordinates:
+
+```
+tl --x 930 --y 420 --region-w 120 --region-h 80 --count 100 --out result.csv
+```
+
+Pick a point near the caret/glyph position where the typed character appears.
+
+## Output
+
+CSV columns:
+
+```
+index,phase,watch_x,watch_y,watch_w,watch_h,latency_ms,best_dist,changed_pixels,status
+```
+
+Each iteration records:
+
+- appear -> type `.`
+- disappear —> press `Backspace`
+
+`latency_ms` is the time from posting the key event until the watched region changes.
+
+## Options
+
+| Command / option | Description |
+|---|---|
+| `tl --pick [options]` | Run with interactive target selection |
+| `tl --x N --y N [options]` | Run with fixed target coordinates |
+| `--help`, `-h` | Show help |
+| `--version` | Show version |
+| `--pick` | Choose target by clicking |
+| `--x N` | Watch center x coordinate |
+| `--y N` | Watch center y coordinate |
+| `--count N` | Default: `100` |
+| `--period-ms N` | Default: `100` |
+| `--timeout-ms N` | Default: `1000` |
+| `--region-w N` | Default: `40` |
+| `--region-h N` | Default: `60` |
+| `--threshold N` | Default: `10` |
+| `--min-changed-pixels N` | Default: `1` |
+| `--out file.csv` | Default: `latency.csv` |
+
+For example:
+
+```
+tl --pick --region-w 120 --region-h 80 --count 100 --out result.csv
+```
+
+## Build
+
+Compile directly:
+
+```
+xcrun clang -O2 tl.c -framework ApplicationServices -framework CoreFoundation -o tl
+```
+
+## Notes
+
+Results include OS input dispatch, editor processing, rendering, compositor behavior, and capture polling.
+For comparable runs, keep the editor still, use the same region/count, and compare medians over multiple runs.
+A timeout usually means the watched region did not change enough: increase the region size, lower the threshold, or pick closer to the inserted glyph.
 

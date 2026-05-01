@@ -1,7 +1,7 @@
 
 #!/usr/bin/env python3
 
-# Plotter for Typing Latency output files.
+# Plotter for Keypress output files.
 #
 # Primary metric:
 #  p95 visible key-to-pixel latency (lower is better)

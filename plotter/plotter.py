@@ -1,18 +1,22 @@
 
 #!/usr/bin/env python3
 
-# pip install matplotlib
-
-# Primary metric: p95 visible key-to-pixel latency.
-# Lower is better.
-
+# Plotter for Typing Latency output files.
+#
+# Primary metric:
+#  p95 visible key-to-pixel latency (lower is better)
+#
 # Expected filename format:
-#   result_<editor>_<version>.csv
+#  result_<editor>_<version>.csv
 # 
 # Examples:
-#   python3 plotter.py --out latency.png
-#   python3 plotter.py --dir .. --out latency.png
-#   python3 plotter.py ../result_hackerman_alpha.csv ../result_vscode_latest.csv --out latency.png
+#  python3 plotter.py --out latency.png
+#  python3 plotter.py --dir .. --out latency.png
+#  python3 plotter.py ../result_hm_alpha.csv ../result_vscode_latest.csv --out latency.png
+#
+# Requirements:
+#  matplotlib
+
 
 from __future__ import annotations
 

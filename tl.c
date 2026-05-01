@@ -1,20 +1,28 @@
 
-//////////////////////////////////////////////////////
-//
-// Typing Latency
-//  Minimal fixed-cell typing latency measurement tool for macOS.
-//
-// Compile:
-//  xcrun clang -O2 tl.c -framework ApplicationServices -framework CoreFoundation -o tl
-//
-// Run from Terminal:
-//  ./tl --pick --region-w 120 --region-h 80 --count 100 --out result.csv
-//
-// macOS permissions required:
-//  System Settings -> Privacy & Security -> Accessibility
-//  System Settings -> Privacy & Security -> Screen Recording
-//
-//////////////////////////////////////////////////////
+// MIT License
+
+// Copyright (c) 2026 Michael Sjoeberg
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+// xcrun clang -O2 tl.c -framework ApplicationServices -framework CoreFoundation -o tl
+// ./tl --pick --region-w 120 --region-h 80 --count 100 --out result.csv
 
 #include <ApplicationServices/ApplicationServices.h>
 #include <CoreFoundation/CoreFoundation.h>

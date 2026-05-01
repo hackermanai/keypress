@@ -2,8 +2,7 @@
 //////////////////////////////////////////////////////
 //
 // Typing Latency
-//  Minimal fixed-cell typing latency measurement
-//  tool for macOS.
+//  Minimal fixed-cell typing latency measurement tool for macOS.
 //
 // Compile:
 //  xcrun clang -O2 tlatency.c -framework ApplicationServices -o tlatency

@@ -58,6 +58,23 @@
             overflow-x: auto;
             border: 1px solid var(--line);
             color: var(--accent);
+            
+            position: relative;
+            cursor: pointer;
+        }
+        
+        pre::after {
+            content: "copy";
+            position: absolute;
+            top: 0.5rem;
+            right: 0.75rem;
+            color: var(--muted);
+            font-size: 12px;
+        }
+        
+        pre.copied::after {
+            content: "copied";
+            color: var(--accent);
         }
 
         .muted {
@@ -127,4 +144,30 @@
         </div>
     </main>
 </body>
+<script>
+    document.querySelectorAll("pre").forEach((pre) => {
+        pre.title = "Click to copy";
+
+        pre.addEventListener("click", async () => {
+            const text = pre.innerText.replace(/^\$\s*/, "").trim();
+
+            try {
+                await navigator.clipboard.writeText(text);
+
+                pre.classList.add("copied");
+
+                window.setTimeout(() => {
+                    pre.classList.remove("copied");
+                }, 900);
+            } catch (_) {
+                const selection = window.getSelection();
+                const range = document.createRange();
+
+                range.selectNodeContents(pre);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        });
+    });
+</script>
 </html>

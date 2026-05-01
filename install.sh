@@ -1,21 +1,21 @@
 #!/bin/sh
 set -eu
 
-repo="hackermanai/typinglatency"
-bin="tl"
-install_dir="${TL_INSTALL_DIR:-$HOME/.local/bin}"
+repo="hackermanai/keypress"
+bin="keypress"
+install_dir="${KEYPRESS_INSTALL_DIR:-$HOME/.local/bin}"
 
 os="$(uname -s)"
 arch="$(uname -m)"
 
 case "$os:$arch" in
     Darwin:arm64)
-        asset="tl-macos-arm64.tar.gz"
-        package_dir="tl-macos-arm64"
+        asset="keypress-macos-arm64.tar.gz"
+        package_dir="keypress-macos-arm64"
         ;;
     Darwin:x86_64)
-        asset="tl-macos-x86_64.tar.gz"
-        package_dir="tl-macos-x86_64"
+        asset="keypress-macos-x86_64.tar.gz"
+        package_dir="keypress-macos-x86_64"
         ;;
     *)
         echo "Unsupported platform: $os $arch" >&2
@@ -66,4 +66,4 @@ echo " System Settings -> Privacy & Security -> Accessibility"
 echo " System Settings -> Privacy & Security -> Screen Recording"
 echo
 echo "Example:"
-echo " tl --pick --region-w 120 --region-h 80 --count 100 --out result.csv"
+echo " keypress --pick --region-w 120 --region-h 80 --count 100 --out result.csv"

@@ -2,3 +2,4 @@
 /plotter/.venv
 hm-latency
 /test_*
+/dist

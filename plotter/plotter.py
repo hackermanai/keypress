@@ -57,7 +57,6 @@ def trim_values(values: list[float], trim_percent: float) -> list[float]:
         return values
 
     values = sorted(values)
-
     trim_each = int(len(values) * (trim_percent / 100.0))
 
     if trim_each <= 0:
@@ -123,9 +122,7 @@ def plot_series(
     trim_percent: float,
 ) -> None:
     data: list[tuple[str, list[float]]] = []
-
     for path in paths:
-        # values = read_latencies(path, phases)
         raw_values = read_latencies(path, phases, skip_indices)
         values = trim_values(raw_values, trim_percent)
         
@@ -137,7 +134,8 @@ def plot_series(
             continue
 
         data.append((series_name(path), values))
-        
+    
+    # sort by p95        
     data.sort(key=lambda item: percentile(item[1], 95))
 
     if not data:
@@ -191,7 +189,6 @@ def plot_series(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    # parser.add_argument("csv", nargs="+", type=Path)
     parser.add_argument("csv", nargs="*", type=Path)
     parser.add_argument("--dir", type=Path, default=Path("."), help="directory to search when no CSV files are given")
     parser.add_argument("--out", type=Path, default=Path("latency_plot.png"))
@@ -200,7 +197,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-indices", type=int, default=2, help="drop rows where index is below this value")
     parser.add_argument("--trim-percent", type=float, default=0.0, help="trim this percent from both tails after reading")
     return parser.parse_args()
-
 
 def main() -> None:
     args = parse_args()

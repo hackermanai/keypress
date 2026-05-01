@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>keypress.sh</title>
+    <meta name="description" content="A minimal fixed-cell typing latency measurement tool for macOS.">
+
+    <style>
+        :root {
+            --bg: black;
+            --fg: white;
+            --muted: grey;
+            --line: cyan;
+            --accent: cyan;
+        }
+
+        html {
+            background: var(--bg);
+            color: var(--fg);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+        }
+
+        main {
+            max-width: 720px;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            margin: 0 0 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        p {
+            margin: 0 0 1rem;
+        }
+
+        pre {
+            margin: 1rem 0;
+            padding: 1rem;
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            color: var(--accent);
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .prompt::before {
+            content: "$ ";
+            color: var(--muted);
+        }
+
+        .block {
+            margin-top: 2rem;
+        }
+
+        .label {
+            color: var(--muted);
+        }
+
+        ul {
+            margin: 1rem 0 0;
+            padding-left: 20px;
+        }
+
+        footer {
+            margin-top: 2rem;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>keypress.sh</h1>
+
+        <p>A minimal fixed-cell typing latency measurement tool for macOS.</p>
+
+        <p class="muted">
+            synthetic key event -&gt; visible pixel change -&gt; csv
+        </p>
+
+        <div class="block">
+            <div class="label">install</div>
+            <pre><span class="prompt"></span>curl -fsSL https://keypress.sh/install | sh</pre>
+        </div>
+
+        <div class="block">
+            <div class="label">run</div>
+            <pre><span class="prompt"></span>keypress --pick</pre>
+        </div>
+
+        <div class="block">
+            <div class="label">benchmark</div>
+            <pre><span class="prompt"></span>keypress --pick --count 100 --out result.csv</pre>
+        </div>
+
+        <div class="block">
+            <div class="label">requires</div>
+            <ul>
+                <li>Accessibility</li>
+                <li>Screen Recording</li>
+            </ul>
+        </div>
+
+        <div class="block">
+            <div class="label">source</div>
+            <p><a href="https://github.com/hackermanai/keypress">github.com/hackermanai/keypress</a></p>
+        </div>
+    </main>
+</body>
+</html>

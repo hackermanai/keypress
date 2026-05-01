@@ -6,6 +6,7 @@
     <title>keypress.sh</title>
     <meta name="description" content="A minimal fixed-cell typing latency measurement tool for macOS.">
     <meta name="author" content="@asyncze">
+    <link rel="icon" type"img/png" href="icon.png">
 
     <style>
         :root {
@@ -20,17 +21,21 @@
             background: var(--bg);
             color: var(--fg);
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 14px;
+            font-size: 18px;
             line-height: 1.5;
+            height: -webkit-fill-available;
         }
 
         body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: -webkit-fill-available;
+        
             margin: 0;
             padding: 2rem;
-        }
-
-        main {
-            max-width: 720px;
+            
+            overflow: hidden;
         }
 
         a {
@@ -41,11 +46,22 @@
         a:hover {
             text-decoration: underline;
         }
+        
+        .hero {
+            text-align: center;
+            margin: 4rem 0 2rem;
+        }
 
         h1 {
-            margin: 0 0 2rem;
-            font-size: 1rem;
+            font-size: 5rem;
             font-weight: 700;
+            margin: 0 0 1rem;
+        }
+        
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 2rem;
+            }
         }
 
         p {
@@ -56,11 +72,24 @@
             margin: 1rem 0;
             padding: 1rem;
             overflow-x: auto;
-            border: 1px solid var(--line);
-            color: var(--accent);
+            border: 1px solid var(--muted);
+            color: var(--muted);
+            line-height: 1;
             
             position: relative;
             cursor: pointer;
+            
+            transition: all 0.15s ease;
+        }
+        
+        @media (max-width: 992px) {
+            pre {
+                font-size: 0.625rem;
+            }
+        }
+        
+        pre:hover {
+            color: var(--accent);
         }
         
         pre::after {
@@ -88,6 +117,8 @@
 
         .block {
             margin-top: 2rem;
+            max-width: 680px;
+            margin: auto;
         }
 
         .label {
@@ -100,49 +131,71 @@
         }
 
         footer {
-            margin-top: 2rem;
+            text-align: center;
+            margin-top: 4rem;
             color: var(--muted);
         }
+        
+        footer p {
+            margin: 0;
+        }
+        
+        footer p strong {
+            color: var(--fg);
+        }
+        
+        .github {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+        }
+        
+        .github a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+        
+        .github a:hover {
+            color: var(--fg);
+            text-decoration: none;
+        }
+        
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
+    
+    <div class="github">
+        <a href="https://github.com/hackermanai/keypress"><i class="fa-brands fa-github"></i></a>
+    </div>
+
     <main>
-        <h1>keypress.sh</h1>
-
-        <p>A minimal fixed-cell typing latency measurement tool for macOS.</p>
-
-        <p class="muted">
-            synthetic key event -&gt; visible pixel change -&gt; csv
-        </p>
+        <div class="hero">
+            <h1><i class="fa-solid fa-angles-right"></i>keypress.sh</h1>
+            <p>A minimal fixed-cell typing latency measurement tool for macOS</p>
+            <p class="muted">synthetic key event <i class="fa-solid fa-arrow-right-long"></i> visible pixel change <i class="fa-solid fa-arrow-right-long"></i> csv</p>
+        </div>    
 
         <div class="block">
-            <div class="label">install</div>
+            <div class="label">// install</div>
             <pre><span class="prompt"></span>curl -fsSL https://keypress.sh/install | sh</pre>
         </div>
 
         <div class="block">
-            <div class="label">run</div>
+            <div class="label">// run</div>
             <pre><span class="prompt"></span>keypress --pick</pre>
         </div>
 
         <div class="block">
-            <div class="label">benchmark</div>
+            <div class="label">// benchmark</div>
             <pre><span class="prompt"></span>keypress --pick --count 100 --out result.csv</pre>
         </div>
-
-        <div class="block">
-            <div class="label">requires</div>
-            <ul>
-                <li>Accessibility</li>
-                <li>Screen Recording</li>
-            </ul>
-        </div>
-
-        <div class="block">
-            <div class="label">source</div>
-            <p><a href="https://github.com/hackermanai/keypress">github.com/hackermanai/keypress</a></p>
-        </div>
     </main>
+    <footer>
+        <p><strong><i class="fa-solid fa-angles-right"></i>keypress.sh</strong> by <a href="https://hackerman.ai/">hackerman.ai</a></p>
+    </footer>
 </body>
 <script>
     document.querySelectorAll("pre").forEach((pre) => {

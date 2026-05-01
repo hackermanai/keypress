@@ -24,6 +24,8 @@
 // xcrun clang -O2 tl.c -framework ApplicationServices -framework CoreFoundation -o tl
 // ./tl --pick --region-w 120 --region-h 80 --count 100 --out result.csv
 
+// sh scripts/build-macos.sh
+
 #include <ApplicationServices/ApplicationServices.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <mach/mach_time.h>

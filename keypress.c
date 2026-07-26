@@ -22,7 +22,7 @@
 // SOFTWARE.
 
 // xcrun clang -O2 -mmacosx-version-min=14.0 -Wno-deprecated-declarations keypress.c -framework ApplicationServices -framework CoreFoundation -o keypress
-// ./keypress --pick --count 100 --out result.csv
+// ./keypress --pick
 
 // build binaries:
 // sh scripts/build-macos.sh

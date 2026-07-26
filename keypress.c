@@ -27,6 +27,8 @@
 // build binaries:
 // sh scripts/build-macos.sh
 
+#define KEYPRESS_VERSION "0.1.5"
+
 #include <ApplicationServices/ApplicationServices.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <mach/mach_time.h>
@@ -779,8 +781,6 @@ static bool parse_args(int argc, char **argv, Config *cfg) {
            cfg->threshold >= 0 &&
            cfg->min_changed_pixels > 0;
 }
-
-#define KEYPRESS_VERSION "0.1.0"
 
 int main(int argc, char **argv) {
     Config cfg;

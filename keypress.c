@@ -126,11 +126,7 @@ static int compare_double(const void *a, const void *b) {
     return 0;
 }
 
-static double percentile_nearest_rank(
-    const double *sorted_values,
-    int count,
-    double percentile
-) {
+static double percentile_nearest_rank(const double *sorted_values, int count, double percentile) {
     if (!sorted_values || count <= 0) {
         return -1.0;
     }
@@ -148,42 +144,46 @@ static double percentile_nearest_rank(
     return sorted_values[index];
 }
 
-static void print_latency_summary(
-    const char *label,
-    double *values,
-    int count
-) {
+static void print_latency_summary(const char *label, double *values, int count, int trim_each_side) {
     if (!values || count <= 0) {
         printf("%s: n=0\n", label);
         return;
     }
 
-    qsort(
-        values,
-        (size_t)count,
-        sizeof(double),
-        compare_double
-    );
+    qsort(values, (size_t)count, sizeof(double), compare_double);
 
+    int start = trim_each_side;
+    int end = count - trim_each_side;
+
+    if (start >= end) {
+        printf("%s: n=0\n", label);
+        return;
+    }
+
+    int trimmed_count = end - start;
     double total = 0.0;
 
-    for (int i = 0; i < count; i++) {
+    for (int i = start; i < end; i++) {
         total += values[i];
     }
 
-    double average = total / (double)count;
-    double p95 = percentile_nearest_rank(values, count, 0.95);
-    double p99 = percentile_nearest_rank(values, count, 0.99);
+    double average = total / (double)trimmed_count;
+    double p95 = percentile_nearest_rank(values + start, trimmed_count, 0.95);
+    double p99 = percentile_nearest_rank(values + start, trimmed_count, 0.99);
 
     printf(
-        "%s: n=%d avg=%.3f ms p95=%.3f ms p99=%.3f ms\n",
+        "%s: n=%d avg=%.3f ms p95=%.3f ms p99=%.3f ms"
+        " trimmed=%d+%d\n",
         label,
-        count,
+        trimmed_count,
         average,
         p95,
-        p99
+        p99,
+        trim_each_side,
+        trim_each_side
     );
 }
+
 
 static bool capture_region(int x, int y, int w, int h, Region *out) {
     if (!out || w <= 0 || h <= 0) {
@@ -254,12 +254,7 @@ static bool capture_region(int x, int y, int w, int h, Region *out) {
     return true;
 }
 
-static int region_distance(
-    const Region *a,
-    const Region *b,
-    int threshold,
-    int *changed_pixels
-) {
+static int region_distance(const Region *a, const Region *b, int threshold, int *changed_pixels) {
     if (!a || !b || !a->pixels || !b->pixels) {
         return 0;
     }
@@ -426,106 +421,6 @@ static bool wait_until_region_differs_since(
     }
 }
 
-// static bool measure_one_phase(
-//     FILE *out,
-//     int index,
-//     const char *phase,
-//     int rx,
-//     int ry,
-//     int rw,
-//     int rh,
-//     int threshold,
-//     int min_changed_pixels,
-//     int timeout_ms,
-//     bool (*post_key)(void)
-// ) {
-//     Region baseline = {0};
-
-//     if (!capture_region(rx, ry, rw, rh, &baseline)) {
-//         fprintf(
-//             out,
-//             "%d,%s,%d,%d,%d,%d,-1,-1,-1,capture_failed\n",
-//             index,
-//             phase,
-//             rx,
-//             ry,
-//             rw,
-//             rh
-//         );
-
-//         fprintf(stderr, "%s %d: capture failed\n", phase, index);
-//         return false;
-//     }
-
-//     double start_ms = now_ms();
-
-//     if (!post_key()) {
-//         free_region(&baseline);
-
-//         fprintf(
-//             out,
-//             "%d,%s,%d,%d,%d,%d,-1,-1,-1,key_failed\n",
-//             index,
-//             phase,
-//             rx,
-//             ry,
-//             rw,
-//             rh
-//         );
-
-//         fprintf(stderr, "%s %d: key post failed\n", phase, index);
-//         return false;
-//     }
-
-//     double latency_ms = -1.0;
-//     int best_dist = 0;
-//     int changed_pixels = 0;
-
-//     bool ok = wait_until_region_differs_since(
-//         &baseline,
-//         start_ms,
-//         threshold,
-//         min_changed_pixels,
-//         timeout_ms,
-//         &latency_ms,
-//         &best_dist,
-//         &changed_pixels
-//     );
-
-//     free_region(&baseline);
-
-//     fprintf(
-//         out,
-//         "%d,%s,%d,%d,%d,%d,%.3f,%d,%d,%s\n",
-//         index,
-//         phase,
-//         rx,
-//         ry,
-//         rw,
-//         rh,
-//         latency_ms,
-//         best_dist,
-//         changed_pixels,
-//         ok ? "ok" : "timeout"
-//     );
-
-//     fflush(out);
-
-//     printf(
-//         "%3d %-9s %8.3f ms  best=%d changed=%d  %s\n",
-//         index,
-//         phase,
-//         latency_ms,
-//         best_dist,
-//         changed_pixels,
-//         ok ? "ok" : "timeout"
-//     );
-
-//     fflush(stdout);
-
-//     return ok;
-// }
-
 static bool measure_one_phase(
     FILE *out,
     int index,
@@ -650,18 +545,12 @@ static bool pick_mouse_position(int *out_x, int *out_y) {
     fflush(stdout);
 
     // Wait until mouse is not already pressed.
-    while (CGEventSourceButtonState(
-        kCGEventSourceStateCombinedSessionState,
-        kCGMouseButtonLeft
-    )) {
+    while (CGEventSourceButtonState(kCGEventSourceStateCombinedSessionState, kCGMouseButtonLeft)) {
         usleep(10000);
     }
 
     // Wait for left click.
-    while (!CGEventSourceButtonState(
-        kCGEventSourceStateCombinedSessionState,
-        kCGMouseButtonLeft
-    )) {
+    while (!CGEventSourceButtonState(kCGEventSourceStateCombinedSessionState, kCGMouseButtonLeft)) {
         usleep(10000);
     }
 
@@ -687,16 +576,13 @@ static bool pick_mouse_position(int *out_x, int *out_y) {
     fflush(stdout);
 
     // Wait for mouse release so the following key events do not race the click.
-    while (CGEventSourceButtonState(
-        kCGEventSourceStateCombinedSessionState,
-        kCGMouseButtonLeft
-    )) {
+    while (CGEventSourceButtonState(kCGEventSourceStateCombinedSessionState, kCGMouseButtonLeft)) {
         usleep(10000);
     }
 
     // Let the click focus/place caret.
     sleep_ms(300);
-
+    
     return true;
 }
 
@@ -741,7 +627,6 @@ static bool parse_args(int argc, char **argv, Config *cfg) {
     cfg->region_h = 60;
     cfg->threshold = 10;
     cfg->min_changed_pixels = 1;
-    // cfg->out_path = "latency.csv";
     cfg->out_path = NULL;
 
     for (int i = 1; i < argc; i++) {
@@ -773,13 +658,13 @@ static bool parse_args(int argc, char **argv, Config *cfg) {
     }
 
     return (cfg->pick || (cfg->x >= 0 && cfg->y >= 0)) &&
-           cfg->count > 0 &&
-           cfg->period_ms >= 0 &&
-           cfg->timeout_ms > 0 &&
-           cfg->region_w > 0 &&
-           cfg->region_h > 0 &&
-           cfg->threshold >= 0 &&
-           cfg->min_changed_pixels > 0;
+            cfg->count > 0 &&
+            cfg->period_ms >= 0 &&
+            cfg->timeout_ms > 0 &&
+            cfg->region_w > 0 &&
+            cfg->region_h > 0 &&
+            cfg->threshold >= 0 &&
+            cfg->min_changed_pixels > 0;
 }
 
 int main(int argc, char **argv) {
@@ -813,70 +698,6 @@ int main(int argc, char **argv) {
         sleep_ms(350);
     }
 
-    // FILE *out = fopen(cfg.out_path, "w");
-
-    // if (!out) {
-    //     perror("fopen");
-    //     return 1;
-    // }
-
-    // fprintf(
-    //     out,
-    //     "index,phase,watch_x,watch_y,watch_w,watch_h,latency_ms,best_dist,changed_pixels,status\n"
-    // );
-
-    // int rx = cfg.x - cfg.region_w / 2;
-    // int ry = cfg.y - cfg.region_h / 2;
-    // int rw = cfg.region_w;
-    // int rh = cfg.region_h;
-
-    // printf("Picked/using x=%d y=%d\n", cfg.x, cfg.y);
-    // printf("Watch region: (%d,%d %dx%d)\n", rx, ry, rw, rh);
-    // printf("Threshold: %d, min changed pixels: %d\n", cfg.threshold, cfg.min_changed_pixels);
-    // printf("Running...\n");
-    // fflush(stdout);
-
-    // for (int i = 0; i < cfg.count; i++) {
-    //     bool appear_ok = measure_one_phase(
-    //         out,
-    //         i,
-    //         "appear",
-    //         rx,
-    //         ry,
-    //         rw,
-    //         rh,
-    //         cfg.threshold,
-    //         cfg.min_changed_pixels,
-    //         cfg.timeout_ms,
-    //         post_period_key
-    //     );
-
-    //     sleep_ms(cfg.period_ms);
-
-    //     bool disappear_ok = measure_one_phase(
-    //         out,
-    //         i,
-    //         "disappear",
-    //         rx,
-    //         ry,
-    //         rw,
-    //         rh,
-    //         cfg.threshold,
-    //         cfg.min_changed_pixels,
-    //         cfg.timeout_ms,
-    //         post_backspace_key
-    //     );
-
-    //     sleep_ms(cfg.period_ms);
-
-    //     (void)appear_ok;
-    //     (void)disappear_ok;
-    // }
-
-    // fclose(out);
-
-    // printf("Saved: %s\n", cfg.out_path);
-    // return 0;
     FILE *out = NULL;
 
     if (cfg.out_path) {
@@ -887,11 +708,7 @@ int main(int argc, char **argv) {
             return 1;
         }
     
-        fprintf(
-            out,
-            "index,phase,watch_x,watch_y,watch_w,watch_h,"
-            "latency_ms,best_dist,changed_pixels,status\n"
-        );
+        fprintf(out, "index,phase,watch_x,watch_y,watch_w,watch_h," "latency_ms,best_dist,changed_pixels,status\n");
     }
     
     int rx = cfg.x - cfg.region_w / 2;
@@ -901,28 +718,14 @@ int main(int argc, char **argv) {
     
     printf("Picked/using x=%d y=%d\n", cfg.x, cfg.y);
     printf("Watch region: (%d,%d %dx%d)\n", rx, ry, rw, rh);
-    printf(
-        "Threshold: %d, min changed pixels: %d\n",
-        cfg.threshold,
-        cfg.min_changed_pixels
-    );
+    printf("Threshold: %d, min changed pixels: %d\n", cfg.threshold, cfg.min_changed_pixels);
     printf("Running...\n");
+    
     fflush(stdout);
     
-    double *appear_latencies = calloc(
-        (size_t)cfg.count,
-        sizeof(double)
-    );
-    
-    double *disappear_latencies = calloc(
-        (size_t)cfg.count,
-        sizeof(double)
-    );
-    
-    double *combined_latencies = calloc(
-        (size_t)cfg.count * 2,
-        sizeof(double)
-    );
+    double *appear_latencies = calloc((size_t)cfg.count, sizeof(double));
+    double *disappear_latencies = calloc((size_t)cfg.count, sizeof(double));
+    double *combined_latencies = calloc((size_t)cfg.count * 2, sizeof(double));
     
     if (!appear_latencies ||
         !disappear_latencies ||
@@ -1000,23 +803,9 @@ int main(int argc, char **argv) {
     
     printf("\nResults:\n");
     
-    print_latency_summary(
-        "Appear   ",
-        appear_latencies,
-        appear_count
-    );
-    
-    print_latency_summary(
-        "Disappear",
-        disappear_latencies,
-        disappear_count
-    );
-    
-    print_latency_summary(
-        "Combined ",
-        combined_latencies,
-        combined_count
-    );
+    print_latency_summary("Appear   ", appear_latencies, appear_count, 2);
+    print_latency_summary("Disappear", disappear_latencies, disappear_count, 2);
+    print_latency_summary("Combined ", combined_latencies, combined_count, 2);
     
     free(appear_latencies);
     free(disappear_latencies);

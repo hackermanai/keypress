@@ -2,17 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    
     <title>keypress.sh</title>
+    
     <meta name="description" content="A minimal fixed-cell typing latency measurement tool for macOS.">
     <meta name="author" content="@asyncze">
-    <!-- <link rel="icon" type"img/png" href="icon.png"> -->
 
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap');
+    
         :root {
-            --bg: black;
-            --fg: white;
-            --muted: grey;
+            --font-mono: "IBM Plex Mono", monospace;;
+            
+            --bg: #111111;
+            --fg: #F7F7F4;
+            --muted: #9E9E9E;
+            --grey: #5D5D5D;
             --line: cyan;
             --accent: cyan;
         }
@@ -20,7 +26,7 @@
         html {
             background: var(--bg);
             color: var(--fg);
-            font-family: "Lucida Console", monospace;
+            font-family: var(--font-mono);
             font-size: 18px;
             line-height: 1.5;
             height: -webkit-fill-available;
@@ -47,6 +53,10 @@
             text-decoration: underline;
         }
         
+        .accent {
+            color: var(--accent);
+        }
+        
         .hero {
             text-align: center;
             margin: 4rem 0 2rem;
@@ -56,6 +66,7 @@
             font-size: 5rem;
             font-weight: 700;
             margin: 0 0 1rem;
+            letter-spacing: -0.015em;
         }
         
         h1 i {
@@ -73,12 +84,14 @@
         }
 
         pre {
+            font-size: 14px;
             margin: 1rem 0;
             padding: 1rem;
             overflow-x: auto;
-            border: 1px solid var(--muted);
+            border: 1px dotted var(--grey);
             color: var(--muted);
             line-height: 1;
+            /*border-radius: 999px;*/
             
             position: relative;
             cursor: pointer;
@@ -99,8 +112,9 @@
         pre::after {
             content: "copy";
             position: absolute;
-            top: 0.5rem;
             right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
             color: var(--muted);
             font-size: 12px;
         }
@@ -135,6 +149,7 @@
         }
 
         footer {
+            font-size: 14px;
             text-align: center;
             margin-top: 4rem;
             padding-bottom: 2rem;
@@ -168,7 +183,9 @@
         }
         
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="./fontawesome.css">
+    <link rel="stylesheet" href="./pixel-regular.css">
+    <link rel="stylesheet" href="./brands.css">
 </head>
 <body>
     <!-- Google tag (gtag.js) -->
@@ -186,9 +203,9 @@
 
     <main>
         <div class="hero">
-            <h1><i class="fa-solid fa-angles-right"></i>keypress.sh</h1>
-            <p>A minimal fixed-cell typing latency measurement tool for macOS</p>
-            <p class="muted">synthetic key event <i class="fa-solid fa-arrow-right-long"></i> visible pixel change <i class="fa-solid fa-arrow-right-long"></i> csv</p>
+            <h1>keypress<span class="accent">.sh</span></h1>
+            <p>A fixed-cell typing latency measurement tool for macOS</p>
+            <p class="muted">Synthetic key event <i class="fa-pixel fa-regular fa-arrow-right-arrow-left"></i> visible pixel change <i class="fa-pixel fa-regular fa-file"></i> csv</p>
         </div>    
 
         <div class="block">
@@ -197,8 +214,9 @@
         </div>
         
         <div class="block">
-            <div class="label">// export</div>
-            <pre><span class="prompt"></span>export PATH="$HOME/.local/bin:$PATH"</pre>
+            <!-- <div class="label">// export</div> -->
+            <!-- <pre><span class="prompt"></span>export PATH="$HOME/.local/bin:$PATH"</pre> -->
+            <pre><span class="prompt"></span>echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc</pre>
         </div>
 
         <div class="block">

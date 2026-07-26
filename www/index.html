@@ -45,12 +45,14 @@
         }
 
         a {
-            color: var(--accent);
+            color: var(--muted);
             text-decoration: none;
+            border-bottom: 1px dotted transparent;
         }
 
         a:hover {
-            text-decoration: underline;
+            color: var(--muted);
+            border-bottom: 1px dotted var(--muted);
         }
         
         .accent {
@@ -88,10 +90,11 @@
             margin: 1rem 0;
             padding: 1rem;
             overflow-x: auto;
-            border: 1px dotted var(--grey);
+            border: 1px solid var(--grey);
             color: var(--muted);
             line-height: 1;
             /*border-radius: 999px;*/
+            border-radius: 8px;
             
             position: relative;
             cursor: pointer;
@@ -205,7 +208,7 @@
         <div class="hero">
             <h1>keypress<span class="accent">.sh</span></h1>
             <p>A fixed-cell typing latency measurement tool for macOS</p>
-            <p class="muted">Synthetic key event <i class="fa-pixel fa-regular fa-arrow-right-arrow-left"></i> visible pixel change <i class="fa-pixel fa-regular fa-file"></i> csv</p>
+            <p class="muted">Synthetic key event <i class="fa-pixel fa-regular fa-arrow-right-arrow-left"></i> visible pixel change <i class="fa-pixel fa-regular fa-arrow-right"></i><i class="fa-pixel fa-regular fa-file"></i> csv</p>
         </div>    
 
         <div class="block">

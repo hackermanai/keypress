@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// xcrun clang -O2 keypress.c -framework ApplicationServices -framework CoreFoundation -o keypress
+// xcrun clang -O2 -mmacosx-version-min=14.0 -Wno-deprecated-declarations keypress.c -framework ApplicationServices -framework CoreFoundation -o keypress
 // ./keypress --pick --count 100 --out result.csv
 
 // build binaries:
@@ -37,6 +37,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h>
 
 typedef struct {
     int x;
@@ -106,6 +107,80 @@ static void free_region(Region *r) {
     r->y = 0;
     r->w = 0;
     r->h = 0;
+}
+
+static int compare_double(const void *a, const void *b) {
+    double da = *(const double *)a;
+    double db = *(const double *)b;
+
+    if (da < db) {
+        return -1;
+    }
+
+    if (da > db) {
+        return 1;
+    }
+
+    return 0;
+}
+
+static double percentile_nearest_rank(
+    const double *sorted_values,
+    int count,
+    double percentile
+) {
+    if (!sorted_values || count <= 0) {
+        return -1.0;
+    }
+
+    int index = (int)ceil(percentile * (double)count) - 1;
+
+    if (index < 0) {
+        index = 0;
+    }
+
+    if (index >= count) {
+        index = count - 1;
+    }
+
+    return sorted_values[index];
+}
+
+static void print_latency_summary(
+    const char *label,
+    double *values,
+    int count
+) {
+    if (!values || count <= 0) {
+        printf("%s: n=0\n", label);
+        return;
+    }
+
+    qsort(
+        values,
+        (size_t)count,
+        sizeof(double),
+        compare_double
+    );
+
+    double total = 0.0;
+
+    for (int i = 0; i < count; i++) {
+        total += values[i];
+    }
+
+    double average = total / (double)count;
+    double p95 = percentile_nearest_rank(values, count, 0.95);
+    double p99 = percentile_nearest_rank(values, count, 0.99);
+
+    printf(
+        "%s: n=%d avg=%.3f ms p95=%.3f ms p99=%.3f ms\n",
+        label,
+        count,
+        average,
+        p95,
+        p99
+    );
 }
 
 static bool capture_region(int x, int y, int w, int h, Region *out) {
@@ -349,6 +424,106 @@ static bool wait_until_region_differs_since(
     }
 }
 
+// static bool measure_one_phase(
+//     FILE *out,
+//     int index,
+//     const char *phase,
+//     int rx,
+//     int ry,
+//     int rw,
+//     int rh,
+//     int threshold,
+//     int min_changed_pixels,
+//     int timeout_ms,
+//     bool (*post_key)(void)
+// ) {
+//     Region baseline = {0};
+
+//     if (!capture_region(rx, ry, rw, rh, &baseline)) {
+//         fprintf(
+//             out,
+//             "%d,%s,%d,%d,%d,%d,-1,-1,-1,capture_failed\n",
+//             index,
+//             phase,
+//             rx,
+//             ry,
+//             rw,
+//             rh
+//         );
+
+//         fprintf(stderr, "%s %d: capture failed\n", phase, index);
+//         return false;
+//     }
+
+//     double start_ms = now_ms();
+
+//     if (!post_key()) {
+//         free_region(&baseline);
+
+//         fprintf(
+//             out,
+//             "%d,%s,%d,%d,%d,%d,-1,-1,-1,key_failed\n",
+//             index,
+//             phase,
+//             rx,
+//             ry,
+//             rw,
+//             rh
+//         );
+
+//         fprintf(stderr, "%s %d: key post failed\n", phase, index);
+//         return false;
+//     }
+
+//     double latency_ms = -1.0;
+//     int best_dist = 0;
+//     int changed_pixels = 0;
+
+//     bool ok = wait_until_region_differs_since(
+//         &baseline,
+//         start_ms,
+//         threshold,
+//         min_changed_pixels,
+//         timeout_ms,
+//         &latency_ms,
+//         &best_dist,
+//         &changed_pixels
+//     );
+
+//     free_region(&baseline);
+
+//     fprintf(
+//         out,
+//         "%d,%s,%d,%d,%d,%d,%.3f,%d,%d,%s\n",
+//         index,
+//         phase,
+//         rx,
+//         ry,
+//         rw,
+//         rh,
+//         latency_ms,
+//         best_dist,
+//         changed_pixels,
+//         ok ? "ok" : "timeout"
+//     );
+
+//     fflush(out);
+
+//     printf(
+//         "%3d %-9s %8.3f ms  best=%d changed=%d  %s\n",
+//         index,
+//         phase,
+//         latency_ms,
+//         best_dist,
+//         changed_pixels,
+//         ok ? "ok" : "timeout"
+//     );
+
+//     fflush(stdout);
+
+//     return ok;
+// }
+
 static bool measure_one_phase(
     FILE *out,
     int index,
@@ -360,21 +535,30 @@ static bool measure_one_phase(
     int threshold,
     int min_changed_pixels,
     int timeout_ms,
-    bool (*post_key)(void)
+    bool (*post_key)(void),
+    double *out_latency_ms
 ) {
+    if (out_latency_ms) {
+        *out_latency_ms = -1.0;
+    }
+
     Region baseline = {0};
 
     if (!capture_region(rx, ry, rw, rh, &baseline)) {
-        fprintf(
-            out,
-            "%d,%s,%d,%d,%d,%d,-1,-1,-1,capture_failed\n",
-            index,
-            phase,
-            rx,
-            ry,
-            rw,
-            rh
-        );
+        if (out) {
+            fprintf(
+                out,
+                "%d,%s,%d,%d,%d,%d,-1,-1,-1,capture_failed\n",
+                index,
+                phase,
+                rx,
+                ry,
+                rw,
+                rh
+            );
+
+            fflush(out);
+        }
 
         fprintf(stderr, "%s %d: capture failed\n", phase, index);
         return false;
@@ -385,16 +569,20 @@ static bool measure_one_phase(
     if (!post_key()) {
         free_region(&baseline);
 
-        fprintf(
-            out,
-            "%d,%s,%d,%d,%d,%d,-1,-1,-1,key_failed\n",
-            index,
-            phase,
-            rx,
-            ry,
-            rw,
-            rh
-        );
+        if (out) {
+            fprintf(
+                out,
+                "%d,%s,%d,%d,%d,%d,-1,-1,-1,key_failed\n",
+                index,
+                phase,
+                rx,
+                ry,
+                rw,
+                rh
+            );
+
+            fflush(out);
+        }
 
         fprintf(stderr, "%s %d: key post failed\n", phase, index);
         return false;
@@ -417,22 +605,28 @@ static bool measure_one_phase(
 
     free_region(&baseline);
 
-    fprintf(
-        out,
-        "%d,%s,%d,%d,%d,%d,%.3f,%d,%d,%s\n",
-        index,
-        phase,
-        rx,
-        ry,
-        rw,
-        rh,
-        latency_ms,
-        best_dist,
-        changed_pixels,
-        ok ? "ok" : "timeout"
-    );
+    if (ok && out_latency_ms) {
+        *out_latency_ms = latency_ms;
+    }
 
-    fflush(out);
+    if (out) {
+        fprintf(
+            out,
+            "%d,%s,%d,%d,%d,%d,%.3f,%d,%d,%s\n",
+            index,
+            phase,
+            rx,
+            ry,
+            rw,
+            rh,
+            latency_ms,
+            best_dist,
+            changed_pixels,
+            ok ? "ok" : "timeout"
+        );
+
+        fflush(out);
+    }
 
     printf(
         "%3d %-9s %8.3f ms  best=%d changed=%d  %s\n",
@@ -523,7 +717,7 @@ static void usage(const char *argv0) {
         "  --region-h N              default: 60\n"
         "  --threshold N             default: 10\n"
         "  --min-changed-pixels N    default: 1\n"
-        "  --out file.csv            default: latency.csv\n\n"
+        "  --out <filename>.csv\n\n"
         "Examples:\n"
         "  %s --pick --region-w 120 --region-h 80 --count 50 --out result.csv\n"
         "  %s --x 930 --y 420 --region-w 120 --region-h 80 --count 50 --out result.csv\n",
@@ -545,7 +739,8 @@ static bool parse_args(int argc, char **argv, Config *cfg) {
     cfg->region_h = 60;
     cfg->threshold = 10;
     cfg->min_changed_pixels = 1;
-    cfg->out_path = "latency.csv";
+    // cfg->out_path = "latency.csv";
+    cfg->out_path = NULL;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--pick") == 0) {
@@ -618,30 +813,140 @@ int main(int argc, char **argv) {
         sleep_ms(350);
     }
 
-    FILE *out = fopen(cfg.out_path, "w");
+    // FILE *out = fopen(cfg.out_path, "w");
 
-    if (!out) {
-        perror("fopen");
-        return 1;
+    // if (!out) {
+    //     perror("fopen");
+    //     return 1;
+    // }
+
+    // fprintf(
+    //     out,
+    //     "index,phase,watch_x,watch_y,watch_w,watch_h,latency_ms,best_dist,changed_pixels,status\n"
+    // );
+
+    // int rx = cfg.x - cfg.region_w / 2;
+    // int ry = cfg.y - cfg.region_h / 2;
+    // int rw = cfg.region_w;
+    // int rh = cfg.region_h;
+
+    // printf("Picked/using x=%d y=%d\n", cfg.x, cfg.y);
+    // printf("Watch region: (%d,%d %dx%d)\n", rx, ry, rw, rh);
+    // printf("Threshold: %d, min changed pixels: %d\n", cfg.threshold, cfg.min_changed_pixels);
+    // printf("Running...\n");
+    // fflush(stdout);
+
+    // for (int i = 0; i < cfg.count; i++) {
+    //     bool appear_ok = measure_one_phase(
+    //         out,
+    //         i,
+    //         "appear",
+    //         rx,
+    //         ry,
+    //         rw,
+    //         rh,
+    //         cfg.threshold,
+    //         cfg.min_changed_pixels,
+    //         cfg.timeout_ms,
+    //         post_period_key
+    //     );
+
+    //     sleep_ms(cfg.period_ms);
+
+    //     bool disappear_ok = measure_one_phase(
+    //         out,
+    //         i,
+    //         "disappear",
+    //         rx,
+    //         ry,
+    //         rw,
+    //         rh,
+    //         cfg.threshold,
+    //         cfg.min_changed_pixels,
+    //         cfg.timeout_ms,
+    //         post_backspace_key
+    //     );
+
+    //     sleep_ms(cfg.period_ms);
+
+    //     (void)appear_ok;
+    //     (void)disappear_ok;
+    // }
+
+    // fclose(out);
+
+    // printf("Saved: %s\n", cfg.out_path);
+    // return 0;
+    FILE *out = NULL;
+
+    if (cfg.out_path) {
+        out = fopen(cfg.out_path, "w");
+    
+        if (!out) {
+            perror("fopen");
+            return 1;
+        }
+    
+        fprintf(
+            out,
+            "index,phase,watch_x,watch_y,watch_w,watch_h,"
+            "latency_ms,best_dist,changed_pixels,status\n"
+        );
     }
-
-    fprintf(
-        out,
-        "index,phase,watch_x,watch_y,watch_w,watch_h,latency_ms,best_dist,changed_pixels,status\n"
-    );
-
+    
     int rx = cfg.x - cfg.region_w / 2;
     int ry = cfg.y - cfg.region_h / 2;
     int rw = cfg.region_w;
     int rh = cfg.region_h;
-
+    
     printf("Picked/using x=%d y=%d\n", cfg.x, cfg.y);
     printf("Watch region: (%d,%d %dx%d)\n", rx, ry, rw, rh);
-    printf("Threshold: %d, min changed pixels: %d\n", cfg.threshold, cfg.min_changed_pixels);
+    printf(
+        "Threshold: %d, min changed pixels: %d\n",
+        cfg.threshold,
+        cfg.min_changed_pixels
+    );
     printf("Running...\n");
     fflush(stdout);
-
+    
+    double *appear_latencies = calloc(
+        (size_t)cfg.count,
+        sizeof(double)
+    );
+    
+    double *disappear_latencies = calloc(
+        (size_t)cfg.count,
+        sizeof(double)
+    );
+    
+    double *combined_latencies = calloc(
+        (size_t)cfg.count * 2,
+        sizeof(double)
+    );
+    
+    if (!appear_latencies ||
+        !disappear_latencies ||
+        !combined_latencies) {
+        fprintf(stderr, "Could not allocate latency arrays.\n");
+    
+        free(appear_latencies);
+        free(disappear_latencies);
+        free(combined_latencies);
+    
+        if (out) {
+            fclose(out);
+        }
+    
+        return 1;
+    }
+    
+    int appear_count = 0;
+    int disappear_count = 0;
+    int combined_count = 0;
+    
     for (int i = 0; i < cfg.count; i++) {
+        double appear_latency = -1.0;
+    
         bool appear_ok = measure_one_phase(
             out,
             i,
@@ -653,11 +958,19 @@ int main(int argc, char **argv) {
             cfg.threshold,
             cfg.min_changed_pixels,
             cfg.timeout_ms,
-            post_period_key
+            post_period_key,
+            &appear_latency
         );
-
+    
+        if (appear_ok) {
+            appear_latencies[appear_count++] = appear_latency;
+            combined_latencies[combined_count++] = appear_latency;
+        }
+    
         sleep_ms(cfg.period_ms);
-
+    
+        double disappear_latency = -1.0;
+    
         bool disappear_ok = measure_one_phase(
             out,
             i,
@@ -669,18 +982,50 @@ int main(int argc, char **argv) {
             cfg.threshold,
             cfg.min_changed_pixels,
             cfg.timeout_ms,
-            post_backspace_key
+            post_backspace_key,
+            &disappear_latency
         );
-
+    
+        if (disappear_ok) {
+            disappear_latencies[disappear_count++] = disappear_latency;
+            combined_latencies[combined_count++] = disappear_latency;
+        }
+    
         sleep_ms(cfg.period_ms);
-
-        (void)appear_ok;
-        (void)disappear_ok;
     }
-
-    fclose(out);
-
-    printf("Saved: %s\n", cfg.out_path);
+    
+    if (out) {
+        fclose(out);
+    }
+    
+    printf("\nResults:\n");
+    
+    print_latency_summary(
+        "Appear   ",
+        appear_latencies,
+        appear_count
+    );
+    
+    print_latency_summary(
+        "Disappear",
+        disappear_latencies,
+        disappear_count
+    );
+    
+    print_latency_summary(
+        "Combined ",
+        combined_latencies,
+        combined_count
+    );
+    
+    free(appear_latencies);
+    free(disappear_latencies);
+    free(combined_latencies);
+    
+    if (cfg.out_path) {
+        printf("\nSaved: %s\n", cfg.out_path);
+    }
+    
     return 0;
 }
 

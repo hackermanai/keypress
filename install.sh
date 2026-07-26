@@ -66,4 +66,4 @@ echo " System Settings -> Privacy & Security -> Accessibility"
 echo " System Settings -> Privacy & Security -> Screen Recording"
 echo
 echo "Example:"
-echo " keypress --pick --region-w 120 --region-h 80 --count 100 --out result.csv"
+echo " keypress --pick --count 100 --out result.csv"

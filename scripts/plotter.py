@@ -28,7 +28,8 @@ from statistics import median
 
 import matplotlib.pyplot as plt
 
-NAME_RE = re.compile(r"^result_(?P<editor>.+?)_(?P<version>.+?)\.csv$")
+# NAME_RE = re.compile(r"^result_(?P<editor>.+?)_(?P<version>.+?)\.csv$")
+NAME_RE = re.compile(r"^(?P<editor>.+?)_(?P<version>.+?)\.csv$")
 
 def series_name(path: Path) -> str:
     match = NAME_RE.match(path.name)
@@ -213,10 +214,10 @@ def main() -> None:
         
     paths = args.csv
     if not paths:
-        paths = sorted(args.dir.glob("result_*.csv"))
+        paths = sorted(args.dir.glob("*.csv"))
     
     if not paths:
-        raise SystemExit(f"no result_*.csv files found in {args.dir}")
+        raise SystemExit(f"no *.csv files found in {args.dir}")
 
     plot_series(
         paths=paths,

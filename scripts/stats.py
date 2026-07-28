@@ -251,7 +251,7 @@ def print_text_table(results):
 
 def print_markdown_table(results):
     print(
-        "| Editor | Median | p95 | p99 | p99.9 | Max | Tail Spread | vs Fastest p95 |"
+        "| Editor | Median | p95 | p99 | p99.9 | Max | Tail Spread | vs Fastest (p95) |"
     )
     print(
         "|:-------|-------:|----:|----:|------:|----:|------------:|---------------:|"

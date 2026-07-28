@@ -251,28 +251,24 @@ def print_text_table(results):
 
 def print_markdown_table(results):
     print(
-        "| Editor | n | Mean (ms) | Median (ms) | p95 (ms) | "
-        "p99 (ms) | p99.9 (ms) | Max (ms) | "
-        "Tail Spread (ms) | vs Fastest p95 |"
+        "| Editor | Median | p95 | p99 | p99.9 | Max | Tail Spread | vs Fastest p95 |"
     )
     print(
-        "|:-------|--:|----------:|------------:|---------:|"
-        "---------:|-----------:|---------:|-----------------:|"
-        "---------------:|"
+        "|:-------|-------:|----:|----:|------:|----:|------------:|---------------:|"
     )
 
     for result in results:
         print(
             f'| {result["editor"]} '
-            f'| {result["n"]} '
-            f'| {result["mean"]:.1f} '
+            # f'| {result["n"]} '
+            # f'| {result["mean"]:.1f} '
             f'| {result["median"]:.1f} '
             f'| {result["p95"]:.1f} '
             f'| {result["p99"]:.1f} '
             f'| {result["p99.9"]:.1f} '
             f'| {result["max"]:.1f} '
             f'| {result["tail_spread"]:.1f} '
-            f'| {result["p95_ratio"]:.2f}× |'
+            f'| {result["p95_ratio"]:.2f}x |'
         )
 
 

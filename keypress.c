@@ -27,7 +27,7 @@
 // build binaries:
 // sh scripts/build-macos.sh
 
-#define KEYPRESS_VERSION "0.1.5"
+#define KEYPRESS_VERSION "0.2.1"
 
 #include <ApplicationServices/ApplicationServices.h>
 #include <CoreFoundation/CoreFoundation.h>
@@ -46,7 +46,7 @@ typedef struct {
     int y;
     bool pick;
     int count;
-    int period_ms;
+    // int period_ms;
     int timeout_ms;
     int region_w;
     int region_h;
@@ -90,6 +90,17 @@ static void sleep_ms(int ms) {
     if (ms <= 0) {
         return;
     }
+    usleep((useconds_t)ms * 1000);
+}
+
+static void sleep_typing_delay(void) {
+    const int min_ms = 120;
+    const int max_ms = 200;
+
+    int ms = min_ms + (int)arc4random_uniform(
+        (uint32_t)(max_ms - min_ms + 1)
+    );
+
     usleep((useconds_t)ms * 1000);
 }
 
@@ -620,7 +631,7 @@ static void usage(const char *argv0) {
         "  --x N                     watch center x coordinate\n"
         "  --y N                     watch center y coordinate\n"
         "  --count N                 default: 100\n"
-        "  --period-ms N             default: 100\n"
+        // "  --period-ms N             default: 100\n"
         "  --timeout-ms N            default: 1000\n"
         "  --region-w N              default: 40\n"
         "  --region-h N              default: 60\n"
@@ -643,7 +654,7 @@ static bool parse_args(int argc, char **argv, Config *cfg) {
     cfg->y = -1;
     cfg->pick = false;
     cfg->count = 100;
-    cfg->period_ms = 100;
+    // cfg->period_ms = 100;
     cfg->timeout_ms = 1000;
     cfg->region_w = 40;
     cfg->region_h = 60;
@@ -661,8 +672,8 @@ static bool parse_args(int argc, char **argv, Config *cfg) {
             cfg->y = atoi(argv[++i]);
         } else if (strcmp(argv[i], "--count") == 0 && i + 1 < argc) {
             cfg->count = atoi(argv[++i]);
-        } else if (strcmp(argv[i], "--period-ms") == 0 && i + 1 < argc) {
-            cfg->period_ms = atoi(argv[++i]);
+        // } else if (strcmp(argv[i], "--period-ms") == 0 && i + 1 < argc) {
+        //     cfg->period_ms = atoi(argv[++i]);
         } else if (strcmp(argv[i], "--timeout-ms") == 0 && i + 1 < argc) {
             cfg->timeout_ms = atoi(argv[++i]);
         } else if (strcmp(argv[i], "--region-w") == 0 && i + 1 < argc) {
@@ -688,7 +699,7 @@ static bool parse_args(int argc, char **argv, Config *cfg) {
 
     return (cfg->pick || (cfg->x >= 0 && cfg->y >= 0)) &&
             cfg->count > 0 &&
-            cfg->period_ms >= 0 &&
+            // cfg->period_ms >= 0 &&
             cfg->timeout_ms > 0 &&
             cfg->region_w > 0 &&
             cfg->region_h > 0 &&
@@ -749,6 +760,7 @@ int main(int argc, char **argv) {
     printf("Watch region: (%d,%d %dx%d)\n", rx, ry, rw, rh);
     printf("Threshold: %d, min changed pixels: %d\n", cfg.threshold, cfg.min_changed_pixels);
     printf("Test character: '%c'\n", (char)cfg.test_char);
+    printf("Typing delay: 120-200 ms randomized\n");
     printf("Running...\n");
     
     fflush(stdout);
@@ -801,7 +813,8 @@ int main(int argc, char **argv) {
             combined_latencies[combined_count++] = appear_latency;
         }
     
-        sleep_ms(cfg.period_ms);
+        // sleep_ms(cfg.period_ms);
+        sleep_typing_delay();
     
         double disappear_latency = -1.0;
     
@@ -826,7 +839,8 @@ int main(int argc, char **argv) {
             combined_latencies[combined_count++] = disappear_latency;
         }
     
-        sleep_ms(cfg.period_ms);
+        // sleep_ms(cfg.period_ms);
+        sleep_typing_delay();
     }
     
     if (out) {

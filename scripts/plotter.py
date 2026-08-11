@@ -218,12 +218,20 @@ def main() -> None:
     
     if not paths:
         raise SystemExit(f"no *.csv files found in {args.dir}")
+        
+    if args.csv:
+        data_dir = paths[0].parent
+    else:
+        data_dir = args.dir
+        
+    dir_title = f"{data_dir.parent.name}/{data_dir.name}"
+    title = f"{args.title} — {dir_title}"
 
     plot_series(
         paths=paths,
         phases=phases,
         out_path=args.out,
-        title=args.title,
+        title=title,
         skip_indices=args.skip_indices,
         trim_percent=args.trim_percent,
     )

@@ -132,7 +132,7 @@ def calculate_stats(path, trim_count, phase):
     med = median(values)
     p95 = percentile(values, 95)
     p99 = percentile(values, 99)
-    p999 = percentile(values, 99.9)
+    # p999 = percentile(values, 99.9)
 
     return {
         "editor": editor_name(path),
@@ -144,7 +144,7 @@ def calculate_stats(path, trim_count, phase):
         "median": med,
         "p95": p95,
         "p99": p99,
-        "p99.9": p999,
+        # "p99.9": p999,
         "max": max(values),
         "tail_spread": p95 - med,
     }
@@ -195,7 +195,7 @@ def print_text_table(results):
         "Median",
         "p95",
         "p99",
-        "p99.9",
+        # "p99.9",
         "Max",
         "Tail spread",
         "vs fastest",
@@ -212,7 +212,7 @@ def print_text_table(results):
                 f'{result["median"]:.1f}',
                 f'{result["p95"]:.1f}',
                 f'{result["p99"]:.1f}',
-                f'{result["p99.9"]:.1f}',
+                # f'{result["p99.9"]:.1f}',
                 f'{result["max"]:.1f}',
                 f'{result["tail_spread"]:.1f}',
                 f'{result["p95_ratio"]:.2f}×',
@@ -251,10 +251,10 @@ def print_text_table(results):
 
 def print_markdown_table(results):
     print(
-        "| Editor | Median | p95 | p99 | p99.9 | Max | Tail Spread | vs Fastest (p95) |"
+        "| Editor | Median | p95 | p99 | Max | Tail Spread | vs Fastest (p95) |"
     )
     print(
-        "|:-------|-------:|----:|----:|------:|----:|------------:|---------------:|"
+        "|:-------|-------:|----:|----:|----:|------------:|---------------:|"
     )
 
     for result in results:
@@ -265,7 +265,7 @@ def print_markdown_table(results):
             f'| {result["median"]:.1f} '
             f'| {result["p95"]:.1f} '
             f'| {result["p99"]:.1f} '
-            f'| {result["p99.9"]:.1f} '
+            # f'| {result["p99.9"]:.1f} '
             f'| {result["max"]:.1f} '
             f'| {result["tail_spread"]:.1f} '
             f'| {result["p95_ratio"]:.2f}x |'

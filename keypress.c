@@ -1,7 +1,7 @@
 
 // MIT License
 
-// Copyright (c) 2026 Michael Sjoeberg
+// Copyright (c) 2026 Michael Sjoberg
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -52,6 +52,7 @@ typedef struct {
     int region_h;
     int threshold;
     int min_changed_pixels;
+    UniChar test_char;
     const char *out_path;
 } Config;
 
@@ -328,8 +329,11 @@ static bool post_key_unicode(CGKeyCode keycode, const UniChar *chars, int char_c
     return true;
 }
 
-static bool post_period_key(void) {
-    UniChar ch = '.';
+// static bool post_period_key(void) {
+//     UniChar ch = '.';
+//     return post_key_unicode((CGKeyCode)47, &ch, 1);
+// }
+static bool post_char_key(UniChar ch) {
     return post_key_unicode((CGKeyCode)47, &ch, 1);
 }
 
@@ -421,6 +425,20 @@ static bool wait_until_region_differs_since(
     }
 }
 
+// static bool measure_one_phase(
+//     FILE *out,
+//     int index,
+//     const char *phase,
+//     int rx,
+//     int ry,
+//     int rw,
+//     int rh,
+//     int threshold,
+//     int min_changed_pixels,
+//     int timeout_ms,
+//     bool (*post_key)(void),
+//     double *out_latency_ms
+// )
 static bool measure_one_phase(
     FILE *out,
     int index,
@@ -432,7 +450,8 @@ static bool measure_one_phase(
     int threshold,
     int min_changed_pixels,
     int timeout_ms,
-    bool (*post_key)(void),
+    UniChar test_char,
+    bool is_backspace,
     double *out_latency_ms
 ) {
     if (out_latency_ms) {
@@ -463,7 +482,9 @@ static bool measure_one_phase(
 
     double start_ms = now_ms();
 
-    if (!post_key()) {
+    // if (!post_key()) {
+    bool key_ok = is_backspace ? post_backspace_key() : post_char_key(test_char);
+    if (!key_ok) {
         free_region(&baseline);
 
         if (out) {
@@ -605,6 +626,7 @@ static void usage(const char *argv0) {
         "  --region-h N              default: 60\n"
         "  --threshold N             default: 10\n"
         "  --min-changed-pixels N    default: 1\n"
+        "  --char C                  character to type, default: .\n"
         "  --out <filename>.csv\n\n"
         "Examples:\n"
         "  %s --pick --region-w 120 --region-h 80 --count 50 --out result.csv\n"
@@ -627,6 +649,7 @@ static bool parse_args(int argc, char **argv, Config *cfg) {
     cfg->region_h = 60;
     cfg->threshold = 10;
     cfg->min_changed_pixels = 1;
+    cfg->test_char = '.';
     cfg->out_path = NULL;
 
     for (int i = 1; i < argc; i++) {
@@ -650,6 +673,12 @@ static bool parse_args(int argc, char **argv, Config *cfg) {
             cfg->threshold = atoi(argv[++i]);
         } else if (strcmp(argv[i], "--min-changed-pixels") == 0 && i + 1 < argc) {
             cfg->min_changed_pixels = atoi(argv[++i]);
+        } else if (strcmp(argv[i], "--char") == 0 && i + 1 < argc) {
+            const char *value = argv[++i];
+            if (value[0] == '\0' || value[1] != '\0') {
+                return false;
+            }
+            cfg->test_char = (UniChar)(unsigned char)value[0];
         } else if (strcmp(argv[i], "--out") == 0 && i + 1 < argc) {
             cfg->out_path = argv[++i];
         } else {
@@ -719,6 +748,7 @@ int main(int argc, char **argv) {
     printf("Picked/using x=%d y=%d\n", cfg.x, cfg.y);
     printf("Watch region: (%d,%d %dx%d)\n", rx, ry, rw, rh);
     printf("Threshold: %d, min changed pixels: %d\n", cfg.threshold, cfg.min_changed_pixels);
+    printf("Test character: '%c'\n", (char)cfg.test_char);
     printf("Running...\n");
     
     fflush(stdout);
@@ -761,7 +791,8 @@ int main(int argc, char **argv) {
             cfg.threshold,
             cfg.min_changed_pixels,
             cfg.timeout_ms,
-            post_period_key,
+            cfg.test_char,
+            false,
             &appear_latency
         );
     
@@ -785,7 +816,8 @@ int main(int argc, char **argv) {
             cfg.threshold,
             cfg.min_changed_pixels,
             cfg.timeout_ms,
-            post_backspace_key,
+            cfg.test_char,
+            true,
             &disappear_latency
         );
     

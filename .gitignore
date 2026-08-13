@@ -5,3 +5,7 @@ hm-latency
 tl
 /scripts/.venv
 keypress
+test_files/five-million-lines.c
+test_files/one-million-lines.c
+test_files/ten-million-lines.c
+test_files/twenty-million-lines.c
